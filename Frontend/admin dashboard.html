@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Expense Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #121212;
+            color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .dashboard {
+            width: 80%;
+            max-width: 1000px;
+            margin: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        button.logout-button { /* Added */
+    background-color: #ff0000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+button.logout-button:hover { /* Added */
+    background-color: #ff5555;
+}
+
+        button.apply-vacation {
+            background-color: #1e90ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button.apply-vacation:hover {
+            background-color: #75ace2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #333;
+        }
+
+        thead th {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #555;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: #2a2a2a;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #1e1e1e;
+        }
+
+        tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #555;
+        }
+
+        .status-button {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-transform: capitalize;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .status-button.pending {
+            background-color: #ebd661;
+        }
+
+        .status-button.accepted {
+            background-color: #60e460;
+        }
+
+        .status-button.rejected {
+            background-color: #ff4500;
+        }
+
+        .status-button:hover {
+            opacity: 0.8;
+        }
+
+        .pagination {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .pagination span {
+            cursor: pointer;
+            padding: 5px 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            margin: 0 2px;
+        }
+
+        .pagination span:hover {
+            background-color: #555;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 60px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.9);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+        }
+
+        #caption {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+            text-align: center;
+            color: #ccc;
+            padding: 10px 0;
+            height: 150px;
+        }
+
+        .modal-content, #caption {  
+            animation-name: zoom;
+            animation-duration: 0.6s;
+        }
+
+        @keyframes zoom {
+            from {transform:scale(0)} 
+            to {transform:scale(1)}
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Admin Expense Dashboard</h1>
+            <button class="apply-vacation">Apply to Vacation</button>
+            <button class="logout-button">Log Out</button> <!-- Added Log Out button -->
+        </header>
+        <table>
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Expense Category</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Receipt</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="expenseTableBody">
+                <!-- Dynamic content will be inserted here -->
+            </tbody>
+        </table>
+        <div class="pagination">
+            <span>&laquo;</span>
+            <span>&raquo;</span>
+        </div>
+    </div>
+    <!-- Modal for viewing the receipt -->
+    <div id="receiptModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="receiptImg">
+        <div id="caption"></div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Function to render expense requests
+            function renderExpenses() {
+                const expenseTableBody = document.getElementById('expenseTableBody');
+                expenseTableBody.innerHTML = '';
+
+                const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+                expenses.forEach((expense, index) => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td><button class="status-button ${expense.status}">${expense.status}</button></td>
+                        <td>${expense.expenseCategory}</td>
+                        <td>${expense.date}</td>
+                        <td>₹${expense.amount}</td>
+                        <td><button class="view-button" data-receipt="${expense.receiptData}">View</button></td>
+                        <td>
+                            ${expense.expenseCategory !== 'Office Rent' || expense.amount !== '25300' ? `
+                                <button class="action-button accept" data-index="${index}">Accept</button>
+                                <button class="action-button reject" data-index="${index}">Reject</button>
+                            ` : ''}
+                        </td>
+                    `;
+                    expenseTableBody.appendChild(row);
+                });
+
+                // Add event listeners for accept and reject buttons
+                document.querySelectorAll('.action-button.accept').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = this.getAttribute('data-index');
+                        updateExpenseStatus(index, 'accepted');
+                    });
+                });
+
+                document.querySelectorAll('.action-button.reject').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = this.getAttribute('data-index');
+                        updateExpenseStatus(index, 'rejected');
+                    });
+                });
+
+                // Add event listeners for view buttons
+                document.querySelectorAll('.view-button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const receiptData = this.getAttribute('data-receipt');
+                        showModal(receiptData);
+                    });
+                });
+            }
+
+            // Function to update expense status
+            function updateExpenseStatus(index, status) {
+                let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+                if (expenses[index]) {
+                    expenses[index].status = status;
+                    localStorage.setItem('expenses', JSON.stringify(expenses));
+                    renderExpenses();
+                }
+            }
+
+            // Function to show the modal with the receipt
+            function showModal(receiptData) {
+                const modal = document.getElementById('receiptModal');
+                const modalImg = document.getElementById('receiptImg');
+                modal.style.display = "block";
+                modalImg.src = receiptData;
+
+                // Close the modal
+                const span = document.getElementsByClassName('close')[0];
+                span.onclick = function() {
+                    modal.style.display = "none";
+                }
+            }
+
+            // Event listener for Apply Vacation button
+            document.querySelector('.apply-vacation').addEventListener('click', function() {
+                // Redirect to vacation_details.html
+                window.location.href = 'vacation details.html';
+            });
+
+            // Event listener for Log Out button
+            document.querySelector('.logout-button').addEventListener('click', function() {
+                // Redirect to main.html
+                window.location.href = 'main.html';
+            });
+
+            // Render expenses on page load
+            renderExpenses();
+        });
+    </script>
+</body>
+</html>

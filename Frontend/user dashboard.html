@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Request Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard">
+        <a href="admin dashboard.html"></a>
+        <header>
+            <h1>Expense Request Dashboard</h1>
+            <button class="new-request">NEW REQUEST</button>
+            <button class="logout-button">Log Out</button> <!-- Added Log Out button -->
+        </header>
+        <table>
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Expense Category</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="expenseTableBody">
+                <!-- Dynamic content will be inserted here -->
+            </tbody>
+        </table>
+        <div class="pagination">
+            <span>&laquo;</span>
+            <span>&raquo;</span>
+        </div>
+    </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Get the button elements
+        var newRequestButton = document.querySelector('.new-request');
+        var logoutButton = document.querySelector('.logout-button'); // Added
+
+        // Add click event listener to the new request button
+        newRequestButton.addEventListener('click', function() {
+            // Redirect the user to the new request page
+            window.location.href = 'user add request.html'; // Change 'user_add_request.html' to the actual URL of your new request page
+        });
+
+        // Add click event listener to the logout button
+        logoutButton.addEventListener('click', function() {
+            // Redirect the user to the main page (logout)
+            window.location.href = 'main.html'; // Change 'main.html' to the actual URL of your main page
+        });
+
+        // Function to render expense requests
+        function renderExpenses() {
+            const expenseTableBody = document.getElementById('expenseTableBody');
+            expenseTableBody.innerHTML = '';
+
+            const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+            expenses.forEach((expense, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td><button class="status-button ${expense.status}">${expense.status}</button></td>
+                    <td>${expense.expenseCategory}</td>
+                    <td>${expense.date}</td>
+                    <td>₹${expense.amount}</td>
+                    <td><button class="clear-row">Clear</button></td>
+                `;
+                expenseTableBody.appendChild(row);
+            });
+
+            // Add event listener to clear buttons
+            const clearButtons = document.querySelectorAll('.clear-row');
+            clearButtons.forEach((button, index) => {
+                button.addEventListener('click', function() {
+                    clearRow(index);
+                });
+            });
+        }
+
+        // Function to clear row
+        function clearRow(index) {
+            let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+            expenses.splice(index, 1);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            renderExpenses(); // Re-render the table
+        }
+
+        // Render expenses on page load
+        renderExpenses();
+    });
+    </script>
+    <style>
+    body {
+    font-family: 'Times New Roman', Times, serif;
+    background-color: #121212;
+    color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.dashboard {
+    width: 80%;
+    max-width: 1000px;
+    margin: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+button.new-request {
+    background-color: #1e90ff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+button.new-request:hover {
+    background-color: #75ace2;
+}
+
+button.logout-button { /* Added */
+    background-color: #ff0000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+button.logout-button:hover { /* Added */
+    background-color: #ff5555;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background-color: #333;
+}
+
+thead th {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #555;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #2a2a2a;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #1e1e1e;
+}
+
+tbody td {
+    padding: 10px;
+    border-bottom: 1px solid #555;
+}
+
+.status-button {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    text-transform: capitalize;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    color: #333;
+}
+
+.status-button.pending {
+    background-color: #ebd661;
+}
+
+.status-button.accepted {
+    background-color: #60e460;
+}
+
+.status-button.rejected {
+    background-color: #ff4500;
+}
+
+.status-button:hover {
+    opacity: 0.8;
+}
+
+.pagination {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.pagination span {
+    cursor: pointer;
+    padding: 5px 10px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    margin: 0 2px;
+}
+
+.pagination span:hover {
+    background-color: #555;
+}
+    </style>
+</body>
+</html>
